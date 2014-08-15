@@ -1,0 +1,6 @@
+desire.txt
+family.txt
+job.txt
+money.txt
+stopwords.txt
+student.txt
