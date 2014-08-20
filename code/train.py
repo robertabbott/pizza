@@ -2,6 +2,7 @@ import json
 import csv
 import codecs
 
+from words import words
 from parseData import parseData
 
 
@@ -12,6 +13,7 @@ class train:
 		self.categories = {}
 		self.categoryOccurrences = {'upvotes':[]}
 		self.dataset = None
+		self.words = None
 
 
 	def getDataset (self):
@@ -20,14 +22,14 @@ class train:
 
 	def getCategories (self, filename):
 		categories = []
-		categoriesFile = open(filename,'r')
+		categoriesFile = open(filename+'categories.txt','r')
 		for line in categoriesFile:
 			categories.append (line)
 
 		for category in categories:
 			if '\n' in category:
 				category = category[:len(category)-1]
-			cFile = open (category, 'r')
+			cFile = open (filename+category, 'r')
 			cFileList = []
 			for line in cFile:
 				if '\n' in line:
@@ -35,6 +37,9 @@ class train:
 				if '\r' in line:
 					line = line[:len(line)-1]
 				cFileList.append (line)
+
+			if category == 'stopwords.txt':
+				self.words = words (cFileList)
 			
 			self.categories[category.split('.')[0]] = cFileList
 			self.categoryOccurrences[category.split('.')[0]] = 0
@@ -42,28 +47,18 @@ class train:
 		# print self.categories
 
 
-	def mapDataByCategory (self):
+	def mapData (self):
 		if self.dataset == None:
 			return
 		else:
 			count = 0
-			for post in self.dataset:
+			for post in self.dataset[1:2]:
 				classification = post['requester_received_pizza']
 				text = post['request_text']
-				text = text.split()
+				text = self.words.textToList(text)
+				textMap = self.words.listToDict (text)
 
-				if classification == True:
-					count += 1
-					self.categoryOccurrences['upvotes'].append(post['requester_upvotes_minus_downvotes_at_retrieval'])
-				
-				for word in text:
-					for category in self.categories.keys():
-						if word in self.categories[category]:
-							if classification == True:
-								self.categoryOccurrences[category] += 1
-							else:
-								self.categoryOccurrences[category] -= 1
-
+			print textMap
 		return 
 
 
@@ -71,7 +66,8 @@ def main ():
 	path = '/Users/robertabbott/Desktop/CS/kaggle/pizza/pizza_request_dataset.json'
 	t = train(path)
 	t.getDataset ()
-	t.getCategories ('categories.txt')
-	t.mapDataByCategory ()
+
+	t.getCategories ('/Users/robertabbott/Desktop/CS/kaggle/pizza/code/wordLists/')
+	t.mapData ()
 
 main()
