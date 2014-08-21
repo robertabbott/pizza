@@ -4,21 +4,16 @@ import codecs
 
 from words import words
 from parseData import parseData
+from collections import defaultdict
 
 
 class train:
 
 	def __init__ (self, path):
-		self.path = path
-		self.categories = {}
-		self.categoryOccurrences = {'upvotes':[]}
-		self.dataset = None
-		self.words = None
+		self.dataset = parseData.readDataset (path)
+		self.wordCount = defaultdict (int)
+		self.wordOccurrenceCount = defaultdict (int)
 
-
-	def getDataset (self):
-		self.dataset = parseData.readDataset(self.path)
-		# print self.dataset[0]
 
 	def getCategories (self, filename):
 		categories = []
@@ -40,34 +35,64 @@ class train:
 
 			if category == 'stopwords.txt':
 				self.words = words (cFileList)
-			
-			self.categories[category.split('.')[0]] = cFileList
-			self.categoryOccurrences[category.split('.')[0]] = 0
+
+			categories = {}
+			categories[category.split('.')[0]] = cFileList
+			categories['stopwords'] = self.words.listToDict(categories['stopwords'])
+			# self.categoryOccurrences[category.split('.')[0]] = 0
+
+			return categories
 
 		# print self.categories
 
 
 	def mapData (self):
+		categories = self.getCategories ('/Users/robertabbott/Desktop/CS/kaggle/pizza/code/wordLists/')
 		if self.dataset == None:
 			return
 		else:
 			count = 0
-			for post in self.dataset[1:2]:
+			tWordList = []
+			fWordList = []
+			for post in self.dataset:
 				classification = post['requester_received_pizza']
-				text = post['request_text']
-				text = self.words.textToList(text)
-				textMap = self.words.listToDict (text)
+				if classification == True:
+					tWordList += self.words.textToList(post['request_text'])
+				else:
+					fWordList += self.words.textToList(post['request_text'])
 
-			print textMap
+				
+
+			textMapT = self.words.listToDict (tWordList)
+			textMapF = self.words.listToDict (fWordList)
+
+
+			for word in textMapT.keys():
+				if categories['stopwords'][word] != 1:
+					self.wordCount[word] += textMapT[word]
+					self.wordOccurrenceCount[word] += textMapT[word]
+
+			for word in textMapF.keys():
+				if categories['stopwords'][word] != 1:
+					self.wordCount[word] -= textMapF[word]
+					self.wordOccurrenceCount[word] += textMapF[word]
+
+			print self.wordCount
+			print self.wordOccurrenceCount
 		return 
 
 
 def main ():
 	path = '/Users/robertabbott/Desktop/CS/kaggle/pizza/pizza_request_dataset.json'
 	t = train(path)
-	t.getDataset ()
-
-	t.getCategories ('/Users/robertabbott/Desktop/CS/kaggle/pizza/code/wordLists/')
 	t.mapData ()
 
 main()
+
+
+
+
+
+
+
+
