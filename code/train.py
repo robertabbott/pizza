@@ -12,7 +12,9 @@ class train:
 	def __init__ (self, path):
 		self.dataset = parseData.readDataset (path)
 		self.wordCount = defaultdict (int)
-		self.wordOccurrenceCount = defaultdict (int)
+		self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
+		self.docCount = {'True':0, 'False':0}
+		self.wordCountTotal = {'True':0, 'False':0}
 
 
 	def getCategories (self, filename):
@@ -57,8 +59,10 @@ class train:
 			for post in self.dataset:
 				classification = post['requester_received_pizza']
 				if classification == True:
+					self.docCount['True'] += 1
 					tWordList += self.words.textToList(post['request_text'])
 				else:
+					self.docCount['False'] += 1
 					fWordList += self.words.textToList(post['request_text'])
 
 				
@@ -68,17 +72,21 @@ class train:
 
 
 			for word in textMapT.keys():
+				self.wordCountTotal['True'] += textMapT[word]
 				if categories['stopwords'][word] != 1:
 					self.wordCount[word] += textMapT[word]
-					self.wordOccurrenceCount[word] += textMapT[word]
+					self.wordOccurrenceCount['True'][word] += textMapT[word]
 
 			for word in textMapF.keys():
+				self.wordCountTotal['False'] += textMapF[word]
 				if categories['stopwords'][word] != 1:
 					self.wordCount[word] -= textMapF[word]
-					self.wordOccurrenceCount[word] += textMapF[word]
+					self.wordOccurrenceCount['False'][word] += textMapF[word]
 
-			print self.wordCount
-			print self.wordOccurrenceCount
+			# print self.wordCount
+			# print self.wordOccurrenceCount
+			# print self.wordCountTotal['False']
+			# print self.wordCountTotal['True']
 		return 
 
 
