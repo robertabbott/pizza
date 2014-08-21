@@ -11,11 +11,12 @@ def readDataset(path):
 if __name__ == '__main__':
   path = '/Users/robertabbott/Desktop/CS/kaggle/pizza/pizza_request_dataset.json'
   dataset = readDataset(path)
+  print dataset[0]['requester_received_pizza']
   
   print 'The dataset contains %d samples.' %(len(dataset))
   print 'Available attributes: ', sorted(dataset[0].keys())
   print 'First post:'
-  print json.dumps(dataset[1]["request_text"], sort_keys=True, indent=2)
+  print json.dumps(dataset[0]['requester_received_pizza'], sort_keys=True, indent=2)
 
   successes = [r['requester_received_pizza'] for r in dataset]
   success_rate = 100.0 * sum(successes) / float(len(successes))

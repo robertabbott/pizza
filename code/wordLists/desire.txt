@@ -17,3 +17,4 @@ movie
 beer
 crave
 craving
+thanks
