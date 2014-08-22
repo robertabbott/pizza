@@ -23,6 +23,8 @@ class classify:
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
 			totalFeatureCount = feature_count_True + feature_count_False
 			
+			print feature, prob, feature_count_True, feature_count_False
+
 			if totalFeatureCount < self.MIN_WORD_COUNT-5:
 				prob += self.RARE_WORD_PROB
 			elif feature_count_False == 0:
@@ -30,10 +32,10 @@ class classify:
 			elif feature_count_True == 0:
 				prob += self.EXCLUSIVE_WORD_PROB
 			else:
-				pT = float(feature_count_True) / float(totalFeatureCount)
-				pF = float(feature_count_False) / float(totalFeatureCount)
+				pT = float(feature_count_True)
+				pF = float(feature_count_False)
 
-				prob += (pF / (pF + pT)) * 0.6
+				prob += (pF / (pF + pT))
 
 
 		return prob/(len(self.trainingData.featureList))

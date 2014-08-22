@@ -22,14 +22,14 @@ def getProbability (trainData, c):
 
 		# metaDataProbability
 		metaDataProb = c.probabilityForMetaData(post)
-		print metaDataProb, post['requester_received_pizza']
+		# print metaDataProb, post['requester_received_pizza']
 		if metaDataProb < 0.3 or metaDataProb > 0.7:
-			count += 1
-			probability += metaDataProb
+			count += 10
+			probability += metaDataProb*10
 
 		# textProbability
 		for word in post['request_text'].split():
-			if c.probabilityForWord (word) < 0.3 or c.probabilityForWord (word) > 0.7:
+			if c.probabilityForWord (word) < 0.3 or c.probabilityForWord (word) > 0.65:
 				count += 1
 				probability += c.probabilityForWord (word)
 
