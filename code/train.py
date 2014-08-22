@@ -13,9 +13,12 @@ class train:
 		self.dataset = parseData.readDataset (path)
 		self.wordCount = defaultdict (int)
 		self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
-		self.docCount = {'True':0, 'False':0}
 		self.wordCountTotal = {'True':0, 'False':0}
+		self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
+		self.featureList = ['upvotes', 'voteRatio']
 
+	def addDataSet (self, path):
+		self.dataset = parseData.readDataset (path)
 
 	def getCategories (self, filename):
 		categories = []
@@ -48,7 +51,42 @@ class train:
 		# print self.categories
 
 
+	def mapVotes (self, post):
+		for feature in self.featureList:
+			if post['requester_received_pizza'] == True:
+				# classification, feature, bucket
+				self.metaDataFeatures[True][feature][self.getFeatureVal(post, feature)] += 1
+
+			else:
+				self.metaDataFeatures[False][feature][self.getFeatureVal(post, feature)] += 1		
+		return
+
+	def getFeatureVal (self, post, feature):
+		if feature == 'upvotes':
+			upvotes = int(post['requester_upvotes_minus_downvotes_at_retrieval'])
+			upvotes -= upvotes % 100
+			return upvotes/100
+		if feature == 'voteRatio':
+			if post['number_of_downvotes_of_request_at_retrieval'] != 0:
+				voteRatio = int(post['number_of_upvotes_of_request_at_retrieval'] / post['number_of_downvotes_of_request_at_retrieval'])
+			else:
+				voteRatio = int(post['number_of_upvotes_of_request_at_retrieval'])
+
+			return voteRatio
+
+	def mapMetaData (self, post):
+		# non-parametric distribution of numerical metadata
+		self.mapVotes (post)
+		
+		return
+
+	def setFeatures (self):
+		for feature in self.featureList:
+			self.metaDataFeatures[True][feature] = defaultdict(int)
+			self.metaDataFeatures[False][feature] = defaultdict(int)
+
 	def mapData (self):
+		self.setFeatures ()
 		categories = self.getCategories ('/Users/robertabbott/Desktop/CS/kaggle/pizza/code/wordLists/')
 		if self.dataset == None:
 			return
@@ -57,12 +95,13 @@ class train:
 			tWordList = []
 			fWordList = []
 			for post in self.dataset:
+				self.mapMetaData (post)
 				classification = post['requester_received_pizza']
 				if classification == True:
-					self.docCount['True'] += 1
+					# self.docCount['True'] += 1
 					tWordList += self.words.textToList(post['request_text'])
 				else:
-					self.docCount['False'] += 1
+					# self.docCount['False'] += 1
 					fWordList += self.words.textToList(post['request_text'])
 
 				
@@ -90,12 +129,21 @@ class train:
 		return 
 
 
+
+
+
 def main ():
 	path = '/Users/robertabbott/Desktop/CS/kaggle/pizza/pizza_request_dataset.json'
 	t = train(path)
 	t.mapData ()
+	# print t.metaDataFeatures[True]['upvotes'].keys()
+	# print t.metaDataFeatures[False]['upvotes'].keys()
+	# print t.metaDataFeatures[True]['voteRatio'].keys()
+	# print t.metaDataFeatures[False]['voteRatio'].keys()
+	# t.addDataSet ('/Users/robertabbott/Desktop/CS/kaggle/pizza/train.json')
+	# t.mapData ()
 
-main()
+# main()
 
 
 

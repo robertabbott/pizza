@@ -1,22 +1,49 @@
 from words import words
 from train import train
 from parseData import parseData
+from collections import defaultdict
 
 class classify:
-	MIN_WORD_COUNT = 5
-	RARE_WORD_PROB = 0.5
-	EXCLUSIVE_WORD_PROB = 0.8
+	MIN_WORD_COUNT = 10
+	RARE_WORD_PROB = 0.3
+	EXCLUSIVE_WORD_PROB = 0.99
 	
 	def __init__ (self, trainingData, path):
 		self.trainingData = trainingData
 		self.testData = parseData.readDataset (path)
+		# self.wordProbability = {'True':defaultdict(int), 'False':defaultdict(int)}
 
+
+	def probabilityForMetaData (self, post):
+		classification = post['requester_received_pizza']
+		prob = 0
+		for feature in self.trainingData.featureList:
+			val = self.trainingData.getFeatureVal(post, feature)
+			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
+			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
+			totalFeatureCount = feature_count_True + feature_count_False
+			
+			if totalFeatureCount < self.MIN_WORD_COUNT-5:
+				prob += self.RARE_WORD_PROB
+			elif feature_count_False == 0:
+				prob += 1 - self.EXCLUSIVE_WORD_PROB
+			elif feature_count_True == 0:
+				prob += self.EXCLUSIVE_WORD_PROB
+			else:
+				pT = float(feature_count_True) / float(totalFeatureCount)
+				pF = float(feature_count_False) / float(totalFeatureCount)
+
+				prob += (pF / (pF + pT)) * 0.6
+
+
+		return prob/(len(self.trainingData.featureList))
 
 	def probabilityForWord(self, word):
-		total_word_count = self.trainingData.wordCountTotal['False'] + self.trainingData.wordCountTotal['True'] 
+		# total_word_count = self.trainingData.wordCountTotal['False'] + self.trainingData.wordCountTotal['True'] 
 
-		word_count_doctype1 = self.trainingData.wordOccurrenceCount['False'][word]
-		word_count_doctype2 = self.trainingData.wordOccurrenceCount['True'][word]
+		word_count_doctype2 = self.trainingData.wordOccurrenceCount['False'][word]
+		word_count_doctype1 = self.trainingData.wordOccurrenceCount['True'][word]
+		total_word_conut = word_count_doctype2 + word_count_doctype1
 		
 		if word_count_doctype1 + word_count_doctype2 < self.MIN_WORD_COUNT:
 			return self.RARE_WORD_PROB
@@ -28,8 +55,10 @@ class classify:
 
 		# P(S|W) = P(W|S) / ( P(W|S) + P(W|H) )
 
-		p_ws = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['False'])
-		p_wh = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['True'])
+
+		# low probability indicates word is likely to occur in true docs
+		p_ws = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['False'])
+		p_wh = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['True'])
 
 		# print p_ws / (p_ws + p_wh), word
 		return p_ws / (p_ws + p_wh)
