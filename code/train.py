@@ -74,6 +74,7 @@ class train:
 
 			return voteRatio
 
+
 	def mapMetaData (self, post):
 		# non-parametric distribution of numerical metadata
 		self.mapVotes (post)
@@ -87,7 +88,7 @@ class train:
 
 	def mapData (self):
 		self.setFeatures ()
-		categories = self.getCategories ('/Users/robertabbott/Desktop/CS/kaggle/pizza/code/wordLists/')
+		categories = self.getCategories ('/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/code/wordLists/')
 		if self.dataset == None:
 			return
 		else:

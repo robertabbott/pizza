@@ -17,13 +17,16 @@ class classify:
 	def probabilityForMetaData (self, post):
 		classification = post['requester_received_pizza']
 		prob = 0
+
+		# for each feature calculate probability based on training data
+		# weight different features more heavily?
 		for feature in self.trainingData.featureList:
 			val = self.trainingData.getFeatureVal(post, feature)
 			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
 			totalFeatureCount = feature_count_True + feature_count_False
 			
-			print feature, prob, feature_count_True, feature_count_False
+			# print feature, prob, feature_count_True, feature_count_False
 
 			if totalFeatureCount < self.MIN_WORD_COUNT-5:
 				prob += self.RARE_WORD_PROB
@@ -35,7 +38,7 @@ class classify:
 				pT = float(feature_count_True)
 				pF = float(feature_count_False)
 
-				prob += (pF / (pF + pT))
+				prob += (pF / (pF + pT)) 
 
 
 		return prob/(len(self.trainingData.featureList))
