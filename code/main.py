@@ -23,6 +23,8 @@ def main ():
 	print 'recall = ' + str(float(y[2])/float(y[2]+y[4]))
 	print 'precision = ' + str(float(y[2])/float(y[2]+y[5]))
 	print 'accuracy = ' + str(float(y[0]) / (float(y[0])+float(y[1])))
+
+	
 	# print time.clock() - x
 	# print train.dataset
 	# print train.wordCount
