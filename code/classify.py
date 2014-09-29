@@ -9,7 +9,7 @@ class classify:
 	EXCLUSIVE_WORD_PROB = 0.99
 
 	
-	def __init__ (self, trainingData, path):
+	def __init__ (self, trainingData):
 		self.trainingData = trainingData
 
 	def probabilityForMetaData (self, post):

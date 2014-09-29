@@ -6,14 +6,16 @@ import time
 def main ():
 	x = time.clock ()
 	# trainPath = '/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/pizza_request_dataset.json'
+	trainPath = '/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/train.json'
+
 	testPath = '/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/pizza_request_dataset.json'
-	# testPath = '/Users/robertabbott/Desktop/CS/kaggle/pizza/test.json'
+	# testPath = '/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/test.json'
 
 	testData = train (testPath)
-	trainData = train ('/Users/robertabbott/Desktop/CS/projects/kaggle/pizza/train.json')
+	trainData = train (trainPath)
 	trainData.mapData ()
 	# trainData.addDataSet (trainPath)
-	c = classify (trainData, testPath)
+	c = classify (trainData)
 
 	# y = getProbability (testData, c)
 	y = c.getProbability (testData)
