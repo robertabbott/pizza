@@ -11,8 +11,6 @@ class classify:
 	
 	def __init__ (self, trainingData, path):
 		self.trainingData = trainingData
-		self.testData = parseData.readDataset (path)
-		# self.wordProbability = {'True':defaultdict(int), 'False':defaultdict(int)}
 
 	def probabilityForMetaData (self, post):
 		classification = post['requester_received_pizza']
@@ -60,11 +58,18 @@ class classify:
 			return p_ws / (p_ws + p_wh)
 
 	def getProbability (self, testData):
+		k = 0
 		METADATA_WEIGHT = 10
 		THRESHOLD_PROBABILITY = 0.3
 
 		correctCount = 0
 		incorrectCount = 0 
+
+		falsePositive = 0
+		falseNegative = 0
+
+		truePositive = 0
+		trueNegative = 0
 
 		# k = []
 		# for i in range (1000):
@@ -75,6 +80,7 @@ class classify:
 		# print THRESHOLD_PROBABILITY, randLow
 
 		for post in testData.dataset:
+			k += 1
 			probability = 0
 			count = 1
 
@@ -96,24 +102,31 @@ class classify:
 			# print probability, post['requester_received_pizza']
 
 			if probability == 0:
-				if False == post['requester_received_pizza']:
+				if post['requester_received_pizza'] == True:
 					correctCount += 1
+					truePositive += 1
 				else:
+					falsePositive += 1
 					incorrectCount += 1
 
 			elif probability > THRESHOLD_PROBABILITY:
-				if False == post['requester_received_pizza']:
+				if post['requester_received_pizza'] == False:
 					correctCount += 1
+					trueNegative += 1
 				else:
+					falseNegative += 1
 					incorrectCount += 1
 
 			elif probability < THRESHOLD_PROBABILITY:
-				if True == post['requester_received_pizza']:
+				if post['requester_received_pizza'] == True:
 					correctCount += 1
+					truePositive += 1
 				else:
+					falsePositive += 1
 					incorrectCount += 1
 
-		return correctCount, incorrectCount
+		# print k
+		return correctCount, incorrectCount, truePositive, trueNegative, falsePositive, falseNegative
 
 	def p_from_list(self, l):
 		p_product         = reduce(lambda x,y: x*y, l)

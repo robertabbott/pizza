@@ -52,7 +52,7 @@ class train:
 		# print self.categories
 
 
-	def mapVotes (self, post):
+	def mapFeatures (self, post):
 		for feature in self.featureList:
 			if post['requester_received_pizza'] == True:
 				# classification, feature, bucket
@@ -60,7 +60,6 @@ class train:
 
 			else:
 				self.metaDataFeatures[False][feature][self.getFeatureVal(post, feature)] += 1		
-		return
 
 	def getFeatureVal (self, post, feature):
 		if feature == 'upvotes':
@@ -88,9 +87,7 @@ class train:
 
 	def mapMetaData (self, post):
 		# non-parametric distribution of numerical metadata
-		self.mapVotes (post)
-		
-		return
+		self.mapFeatures (post)
 
 	def setFeatures (self):
 		for feature in self.featureList:
