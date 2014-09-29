@@ -7,12 +7,12 @@ class classify:
 	MIN_WORD_COUNT = 10
 	RARE_WORD_PROB = 0.3
 	EXCLUSIVE_WORD_PROB = 0.99
+
 	
 	def __init__ (self, trainingData, path):
 		self.trainingData = trainingData
 		self.testData = parseData.readDataset (path)
 		# self.wordProbability = {'True':defaultdict(int), 'False':defaultdict(int)}
-
 
 	def probabilityForMetaData (self, post):
 		classification = post['requester_received_pizza']
@@ -115,13 +115,11 @@ class classify:
 
 		return correctCount, incorrectCount
 
-
 	def p_from_list(self, l):
 		p_product         = reduce(lambda x,y: x*y, l)
 		p_inverse_product = reduce(lambda x,y: x*y, map(lambda x: 1-x, l))
 
 		return p_product / (p_product + p_inverse_product)
-
 
 	def execute(self):
 		pl = []
