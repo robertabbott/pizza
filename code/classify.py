@@ -11,8 +11,6 @@ class classify:
 	
 	def __init__ (self, trainingData, path):
 		self.trainingData = trainingData
-		self.testData = parseData.readDataset (path)
-		# self.wordProbability = {'True':defaultdict(int), 'False':defaultdict(int)}
 
 	def probabilityForMetaData (self, post):
 		classification = post['requester_received_pizza']
