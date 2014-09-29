@@ -24,13 +24,8 @@ class classify:
 			val = self.trainingData.getFeatureVal(post, feature)
 			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
-			totalFeatureCount = feature_count_True + feature_count_False
-			
-			# print feature, prob, feature_count_True, feature_count_False
 
-			if totalFeatureCount < self.MIN_WORD_COUNT-5:
-				prob += self.RARE_WORD_PROB
-			elif feature_count_False == 0:
+			if feature_count_False == 0:
 				prob += 1 - self.EXCLUSIVE_WORD_PROB
 			elif feature_count_True == 0:
 				prob += self.EXCLUSIVE_WORD_PROB
@@ -38,8 +33,7 @@ class classify:
 				pT = float(feature_count_True)
 				pF = float(feature_count_False)
 
-				prob += (pF / (pF + pT)) 
-
+				prob += (pF / (pF + pT)) 	
 
 		return prob/(len(self.trainingData.featureList))
 
@@ -54,19 +48,73 @@ class classify:
 			return self.RARE_WORD_PROB
 
 		if word_count_doctype1 == 0:
-				return 1 - self.EXCLUSIVE_WORD_PROB
+			return 1 - self.EXCLUSIVE_WORD_PROB
 		elif word_count_doctype2 == 0:
-				return self.EXCLUSIVE_WORD_PROB
+			return self.EXCLUSIVE_WORD_PROB
+		else:
+			# low probability indicates word is likely to occur in true docs
+			p_ws = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['False'])
+			p_wh = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['True'])
 
-		# P(S|W) = P(W|S) / ( P(W|S) + P(W|H) )
+			# print p_ws / (p_ws + p_wh), word
+			return p_ws / (p_ws + p_wh)
 
+	def getProbability (self, testData):
+		METADATA_WEIGHT = 10
+		THRESHOLD_PROBABILITY = 0.3
 
-		# low probability indicates word is likely to occur in true docs
-		p_ws = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['False'])
-		p_wh = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['True'])
+		correctCount = 0
+		incorrectCount = 0 
 
-		# print p_ws / (p_ws + p_wh), word
-		return p_ws / (p_ws + p_wh)
+		# k = []
+		# for i in range (1000):
+		# 	h = random.random()
+		# 	l= random.random()
+		# 	THRESHOLD_PROBABILITY = max(l, h)
+		# 	randLow = min(l, h)
+		# print THRESHOLD_PROBABILITY, randLow
+
+		for post in testData.dataset:
+			probability = 0
+			count = 1
+
+			# metaDataProbability
+			metaDataProb = self.probabilityForMetaData(post)
+			# print metaDataProb, post['requester_received_pizza']
+			if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
+				count += METADATA_WEIGHT
+				probability += metaDataProb*METADATA_WEIGHT
+
+			# textProbability
+			for word in post['request_text'].split():
+				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
+					count += 1
+					probability += self.probabilityForWord (word)
+
+			probability /= count
+
+			# print probability, post['requester_received_pizza']
+
+			if probability == 0:
+				if False == post['requester_received_pizza']:
+					correctCount += 1
+				else:
+					incorrectCount += 1
+
+			elif probability > THRESHOLD_PROBABILITY:
+				if False == post['requester_received_pizza']:
+					correctCount += 1
+				else:
+					incorrectCount += 1
+
+			elif probability < THRESHOLD_PROBABILITY:
+				if True == post['requester_received_pizza']:
+					correctCount += 1
+				else:
+					incorrectCount += 1
+
+		return correctCount, incorrectCount
+
 
 	def p_from_list(self, l):
 		p_product         = reduce(lambda x,y: x*y, l)

@@ -1,6 +1,7 @@
 import json
 import csv
 import codecs
+import datetime
 
 from words import words
 from parseData import parseData
@@ -15,7 +16,7 @@ class train:
 		self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
 		self.wordCountTotal = {'True':0, 'False':0}
 		self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
-		self.featureList = ['upvotes', 'voteRatio']
+		self.featureList = ['upvotes', 'voteRatio', 'unix_timestamp_of_request_utc', 'requester_user_flair']
 
 	def addDataSet (self, path):
 		self.dataset = parseData.readDataset (path)
@@ -73,6 +74,16 @@ class train:
 				voteRatio = int(post['number_of_upvotes_of_request_at_retrieval'])
 
 			return voteRatio
+
+		if feature == 'unix_timestamp_of_request_utc':
+			hour = datetime.datetime.fromtimestamp(int(post['unix_timestamp_of_request_utc'])).strftime('%Y-%m-%d %H:%M:%S')
+			hour = hour.split()[1]
+			hour = int(hour.split(':')[0])
+
+			return hour
+
+		if feature == 'requester_user_flair':
+			return post['requester_user_flair']
 
 
 	def mapMetaData (self, post):
