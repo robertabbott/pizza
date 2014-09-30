@@ -15,6 +15,8 @@ class train:
 		self.wordCount = defaultdict (int)
 		self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
 		self.wordCountTotal = {'True':0, 'False':0}
+		self.docCount = 0
+		self.trueCount = 0
 		self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
 		self.featureList = ['upvotes', 'voteRatio', 'unix_timestamp_of_request_utc', 'requester_user_flair']
 
@@ -103,10 +105,15 @@ class train:
 			count = 0
 			tWordList = []
 			fWordList = []
+			trueCount = 0
+			docCount = 0
 			for post in self.dataset:
+				docCount += 1
 				self.mapMetaData (post)
 				classification = post['requester_received_pizza']
+
 				if classification == True:
+					trueCount = 0
 					# self.docCount['True'] += 1
 					tWordList += self.words.textToList(post['request_text'])
 				else:
@@ -131,6 +138,9 @@ class train:
 					self.wordCount[word] -= textMapF[word]
 					self.wordOccurrenceCount['False'][word] += textMapF[word]
 
+
+			self.docCount = docCount
+			self.trueCount = trueCount
 			# print self.wordCount
 			# print self.wordOccurrenceCount
 			# print self.wordCountTotal['False']

@@ -80,50 +80,51 @@ class classify:
 		# print THRESHOLD_PROBABILITY, randLow
 
 		for post in testData.dataset:
-			k += 1
-			probability = 0
-			count = 1
+			if post['in_test_set'] == True:
+				k += 1
+				probability = 0
+				count = 1
 
-			# metaDataProbability
-			metaDataProb = self.probabilityForMetaData(post)
-			# print metaDataProb, post['requester_received_pizza']
-			if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
-				count += METADATA_WEIGHT
-				probability += metaDataProb*METADATA_WEIGHT
+				# metaDataProbability
+				metaDataProb = self.probabilityForMetaData(post)
+				# print metaDataProb, post['requester_received_pizza']
+				if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
+					count += METADATA_WEIGHT
+					probability += metaDataProb*METADATA_WEIGHT
 
-			# textProbability
-			for word in post['request_text'].split():
-				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
-					count += 1
-					probability += self.probabilityForWord (word)
+				# textProbability
+				for word in post['request_text'].split():
+					if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
+						count += 1
+						probability += self.probabilityForWord (word)
 
-			probability /= count
+				probability /= count
 
-			# print probability, post['requester_received_pizza']
+				# print probability, post['requester_received_pizza']
 
-			if probability == 0:
-				if post['requester_received_pizza'] == True:
-					correctCount += 1
-					truePositive += 1
-				else:
-					falsePositive += 1
-					incorrectCount += 1
+				if probability == 0:
+					if post['requester_received_pizza'] == True:
+						correctCount += 1
+						truePositive += 1
+					else:
+						falsePositive += 1
+						incorrectCount += 1
 
-			elif probability > THRESHOLD_PROBABILITY:
-				if post['requester_received_pizza'] == False:
-					correctCount += 1
-					trueNegative += 1
-				else:
-					falseNegative += 1
-					incorrectCount += 1
+				elif probability > THRESHOLD_PROBABILITY:
+					if post['requester_received_pizza'] == False:
+						correctCount += 1
+						trueNegative += 1
+					else:
+						falseNegative += 1
+						incorrectCount += 1
 
-			elif probability < THRESHOLD_PROBABILITY:
-				if post['requester_received_pizza'] == True:
-					correctCount += 1
-					truePositive += 1
-				else:
-					falsePositive += 1
-					incorrectCount += 1
+				elif probability < THRESHOLD_PROBABILITY:
+					if post['requester_received_pizza'] == True:
+						correctCount += 1
+						truePositive += 1
+					else:
+						falsePositive += 1
+						incorrectCount += 1
 
 		# print k
 		return correctCount, incorrectCount, truePositive, trueNegative, falsePositive, falseNegative
