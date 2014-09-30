@@ -17,7 +17,6 @@ def main ():
 	# trainData.addDataSet (trainPath)
 	c = classify (trainData)
 
-	# y = getProbability (testData, c)
 	y = c.getProbability (testData)
 
 	# print y[0:2]

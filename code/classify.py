@@ -6,11 +6,21 @@ from collections import defaultdict
 class classify:
 	MIN_WORD_COUNT = 10
 	RARE_WORD_PROB = 0.3
-	EXCLUSIVE_WORD_PROB = 5
+	EXCLUSIVE_WORD_PROB = 1
+	NEUTRAL_PROB = 0.5
 
 	
 	def __init__ (self, trainingData):
 		self.trainingData = trainingData
+
+	def normalizeData (self, t2):
+		t = self.trainingData.docCount['True']
+		f = self.trainingData.docCount['False']
+
+		ratio = float(t) / float(t+f)
+
+		return int(float(1) / ratio * float (t2))
+		
 
 	def probabilityForMetaData (self, post):
 		# classification = post['requester_received_pizza']
@@ -22,6 +32,8 @@ class classify:
 			val = self.trainingData.getFeatureVal(post, feature)
 			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
+
+			feature_count_True = self.normalizeData (feature_count_True)
 
 			if feature_count_False == 0:
 				prob += 1 - self.EXCLUSIVE_WORD_PROB
@@ -37,13 +49,16 @@ class classify:
 
 	def probabilityForWord(self, word):
 		# total_word_count = self.trainingData.wordCountTotal['False'] + self.trainingData.wordCountTotal['True'] 
-
 		word_count_doctype2 = self.trainingData.wordOccurrenceCount['False'][word]
 		word_count_doctype1 = self.trainingData.wordOccurrenceCount['True'][word]
-		total_word_conut = word_count_doctype2 + word_count_doctype1
 		
-		if word_count_doctype1 + word_count_doctype2 < self.MIN_WORD_COUNT:
-			return self.RARE_WORD_PROB
+		
+		word_count_doctype1 = self.normalizeData (word_count_doctype1)
+		total_word_count = word_count_doctype2 + word_count_doctype1
+		# print word, total_word_count, 'True ', word_count_doctype1, 'False ', word_count_doctype2
+
+		if total_word_count < self.MIN_WORD_COUNT:
+			return self.NEUTRAL_PROB
 
 		if word_count_doctype1 == 0:
 			return 1 - self.EXCLUSIVE_WORD_PROB
@@ -61,54 +76,66 @@ class classify:
 		f = open ('data.csv', 'w')
 		f.write ('request_id,requester_received_pizza' + '\n')
 
-		METADATA_WEIGHT = 10
-		THRESHOLD_PROBABILITY = 0.3
+		METADATA_WEIGHT = 50
+		THRESHOLD_PROBABILITY = 0.5
+
+		correct = 0
+		incorrect = 0
 
 		for post in testData.dataset:
-			output = 0
-			probability = 0
-			count = 1
-
-			# metaDataProbability
-			metaDataProb = self.probabilityForMetaData(post)
-			# print metaDataProb, post['requester_received_pizza']
-			if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
-				count += METADATA_WEIGHT
-				probability += metaDataProb*METADATA_WEIGHT
-
-			# textProbability
-			for word in post['request_text_edit_aware'].split():
-				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
-					count += 1
-					probability += self.probabilityForWord (word)
-
-			for word in post['request_title'].split():
-				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
-					count += 1
-					probability += self.probabilityForWord (word)
-
-			probability /= count
-
-			# print probability, post['requester_received_pizza']
-
-			if probability == 0:
-				# True
-				output = 1
-
-			elif probability > THRESHOLD_PROBABILITY:
-				# False
+			# if post['in_test_set'] == True:
 				output = 0
+				probability = 0
+				count = 1
 
-			elif probability < THRESHOLD_PROBABILITY:
-				# True
-				output = 1
-			else:
-				# False
-				output = 0
+				# metaDataProbability
+				metaDataProb = self.probabilityForMetaData(post)
+				# print metaDataProb, post['requester_received_pizza']
+				if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
+					count += METADATA_WEIGHT
+					probability += metaDataProb*METADATA_WEIGHT
 
-			f.write (post['request_id'] + ',' + str(output) + '\n')
+				# textProbability
+				for word in post['request_text_edit_aware'].split():
+					if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
+						count += 1
+						probability += self.probabilityForWord (word)
 
-		# print k
+				for word in post['request_title'].split():
+					if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
+						count += 1
+						probability += self.probabilityForWord (word)
+
+				probability /= count
+
+				if probability == 0:
+					# False
+					output = 0
+
+				elif probability < THRESHOLD_PROBABILITY:
+					# True
+					output = 0
+
+				elif probability > THRESHOLD_PROBABILITY:
+					# False
+					output = 1
+				else:
+					# True
+					output = 0
+
+				# if output == 1 and post['requester_received_pizza']	== True:
+				# 	print probability
+
+				# if post['requester_received_pizza'] == True and output == 1:
+				# 	correct += 1
+				# elif post['requester_received_pizza'] == False and output == 0:
+				# 	correct += 1
+				# else:
+				# 	incorrect += 1
+				
+				f.write (post['request_id'] + ',' + str(output) + '\n')
+		print correct, incorrect
+
 		f.close()
 		return 
 

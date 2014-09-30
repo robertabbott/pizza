@@ -18,6 +18,7 @@ class train:
 			self.wordCountTotal = {'True':0, 'False':0}
 			self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
 			self.featureList = ['upvotes', 'downvotes', 'subreddits', 'account_age', 'comment_count', 'unix_timestamp_of_request_utc', 'requester_user_flair']
+			self.docCount = {'True':0, 'False':0}
 			# self.featureList = ['unix_timestamp_of_request_utc']
 
 	def addDataSet (self, path):
@@ -89,8 +90,6 @@ class train:
 			sr -= sr % 10
 			return sr
 
-		
-
 		# if feature == 'voteRatio':
 		# 	if post['number_of_downvotes_of_request_at_request'] != 0:
 		# 		voteRatio = int(post['number_of_upvotes_of_request_at_request'] / post['number_of_downvotes_at_request'])
@@ -133,10 +132,10 @@ class train:
 				classification = post['requester_received_pizza']
 
 				if classification == True:
-					# self.docCount['True'] += 1
+					self.docCount['True'] += 1
 					tWordList += self.words.textToList(post['request_text'])
 				else:
-					# self.docCount['False'] += 1
+					self.docCount['False'] += 1
 					fWordList += self.words.textToList(post['request_text'])
 
 				
