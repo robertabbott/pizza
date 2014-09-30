@@ -28,12 +28,11 @@ class classify:
 
 		# for each feature calculate probability based on training data
 		# weight different features more heavily?
+		count = 0
 		for feature in self.trainingData.featureList:
 			val = self.trainingData.getFeatureVal(post, feature)
 			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
-
-			feature_count_True = self.normalizeData (feature_count_True)
 
 			if feature_count_False == 0:
 				prob += 1 - self.EXCLUSIVE_WORD_PROB
@@ -43,41 +42,49 @@ class classify:
 				pT = float(feature_count_True)
 				pF = float(feature_count_False)
 
-				prob += (pF / (pF + pT)) 	
+				if pT / (pF + pT) > 0.8 or pT / (pF + pT) < 0.2:
+					prob += (pT / (pF + pT))
+				else:
+					count += 1
 
-		return prob/(len(self.trainingData.featureList))
+		if prob == 0:
+			return -69
+		else:
+			return prob/(len(self.trainingData.featureList)-count)
 
 	def probabilityForWord(self, word):
 		# total_word_count = self.trainingData.wordCountTotal['False'] + self.trainingData.wordCountTotal['True'] 
 		word_count_doctype2 = self.trainingData.wordOccurrenceCount['False'][word]
 		word_count_doctype1 = self.trainingData.wordOccurrenceCount['True'][word]
-		
-		
-		word_count_doctype1 = self.normalizeData (word_count_doctype1)
 		total_word_count = word_count_doctype2 + word_count_doctype1
 		# print word, total_word_count, 'True ', word_count_doctype1, 'False ', word_count_doctype2
 
 		if total_word_count < self.MIN_WORD_COUNT:
-			return self.NEUTRAL_PROB
+			return -69
 
 		if word_count_doctype1 == 0:
-			return 1 - self.EXCLUSIVE_WORD_PROB
-		elif word_count_doctype2 == 0:
 			return self.EXCLUSIVE_WORD_PROB
+		elif word_count_doctype2 == 0:
+			return 1 - self.EXCLUSIVE_WORD_PROB
 		else:
 			# low probability indicates word is likely to occur in true docs
 			p_ws = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['False'])
 			p_wh = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['True'])
 
 			# print p_ws / (p_ws + p_wh), word
-			return p_ws / (p_ws + p_wh)
+			if p_wh / (p_ws + p_wh) > 0.8:
+				return 2
+			elif p_wh / (p_ws + p_wh) < 0.3:
+				return -2
+			else:
+				return p_wh / (p_ws + p_wh)
 
 	def getProbability (self, testData):
 		f = open ('data.csv', 'w')
 		f.write ('request_id,requester_received_pizza' + '\n')
 
-		METADATA_WEIGHT = 50
-		THRESHOLD_PROBABILITY = 0.5
+		METADATA_WEIGHT = 20
+		THRESHOLD_PROBABILITY = 0.54
 
 		correct = 0
 		incorrect = 0
@@ -91,20 +98,22 @@ class classify:
 				# metaDataProbability
 				metaDataProb = self.probabilityForMetaData(post)
 				# print metaDataProb, post['requester_received_pizza']
-				if metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY:
+				if metaDataProb != -69 and (metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY):
 					count += METADATA_WEIGHT
 					probability += metaDataProb*METADATA_WEIGHT
 
 				# textProbability
 				for word in post['request_text_edit_aware'].split():
-					if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
-						count += 1
-						probability += self.probabilityForWord (word)
+					if self.probabilityForWord (word) != -69:
+						if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
+							count += 1
+							probability += self.probabilityForWord (word)
 
 				for word in post['request_title'].split():
-					if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
-						count += 1
-						probability += self.probabilityForWord (word)
+					if self.probabilityForWord (word) != -69:
+						if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
+							count += 1
+							probability += self.probabilityForWord (word)
 
 				probability /= count
 
@@ -125,14 +134,16 @@ class classify:
 
 				# if output == 1 and post['requester_received_pizza']	== True:
 				# 	print probability
-
+				# if output == 1 and post['requester_received_pizza']	== False:
+				# 	print probability, '<-- incorrect'
+# 
 				# if post['requester_received_pizza'] == True and output == 1:
 				# 	correct += 1
 				# elif post['requester_received_pizza'] == False and output == 0:
 				# 	correct += 1
 				# else:
 				# 	incorrect += 1
-				
+
 				f.write (post['request_id'] + ',' + str(output) + '\n')
 		print correct, incorrect
 

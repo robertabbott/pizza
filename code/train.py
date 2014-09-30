@@ -128,15 +128,16 @@ class train:
 			tWordList = []
 			fWordList = []
 			for post in self.dataset:
-				self.mapMetaData (post)
 				classification = post['requester_received_pizza']
 
-				if classification == True:
-					self.docCount['True'] += 1
-					tWordList += self.words.textToList(post['request_text'])
-				else:
-					self.docCount['False'] += 1
-					fWordList += self.words.textToList(post['request_text'])
+				if self.docCount['False'] < 1000 or classification == 'True':
+					self.mapMetaData (post)
+					if classification == True:
+						self.docCount['True'] += 1
+						tWordList += self.words.textToList(post['request_text'])
+					else:
+						self.docCount['False'] += 1
+						fWordList += self.words.textToList(post['request_text'])
 
 				
 
