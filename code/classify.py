@@ -9,11 +9,11 @@ class classify:
 	EXCLUSIVE_WORD_PROB = 0.99
 
 	
-	def __init__ (self, trainingData, path):
+	def __init__ (self, trainingData):
 		self.trainingData = trainingData
 
 	def probabilityForMetaData (self, post):
-		classification = post['requester_received_pizza']
+		# classification = post['requester_received_pizza']
 		prob = 0
 
 		# for each feature calculate probability based on training data
@@ -58,29 +58,14 @@ class classify:
 			return p_ws / (p_ws + p_wh)
 
 	def getProbability (self, testData):
-		k = 0
+		f = open ('data.csv', 'w')
+		f.write ('request_id,requester_received_pizza')
+
 		METADATA_WEIGHT = 10
 		THRESHOLD_PROBABILITY = 0.3
 
-		correctCount = 0
-		incorrectCount = 0 
-
-		falsePositive = 0
-		falseNegative = 0
-
-		truePositive = 0
-		trueNegative = 0
-
-		# k = []
-		# for i in range (1000):
-		# 	h = random.random()
-		# 	l= random.random()
-		# 	THRESHOLD_PROBABILITY = max(l, h)
-		# 	randLow = min(l, h)
-		# print THRESHOLD_PROBABILITY, randLow
-
 		for post in testData.dataset:
-			k += 1
+			output = 0
 			probability = 0
 			count = 1
 
@@ -92,7 +77,7 @@ class classify:
 				probability += metaDataProb*METADATA_WEIGHT
 
 			# textProbability
-			for word in post['request_text'].split():
+			for word in post['request_text_edit_aware'].split():
 				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
 					count += 1
 					probability += self.probabilityForWord (word)
@@ -102,31 +87,25 @@ class classify:
 			# print probability, post['requester_received_pizza']
 
 			if probability == 0:
-				if post['requester_received_pizza'] == True:
-					correctCount += 1
-					truePositive += 1
-				else:
-					falsePositive += 1
-					incorrectCount += 1
+				# True
+				output = 1
 
 			elif probability > THRESHOLD_PROBABILITY:
-				if post['requester_received_pizza'] == False:
-					correctCount += 1
-					trueNegative += 1
-				else:
-					falseNegative += 1
-					incorrectCount += 1
+				# False
+				output = 0
 
 			elif probability < THRESHOLD_PROBABILITY:
-				if post['requester_received_pizza'] == True:
-					correctCount += 1
-					truePositive += 1
-				else:
-					falsePositive += 1
-					incorrectCount += 1
+				# True
+				output = 1
+			else:
+				# False
+				output = 0
+
+			f.write (post['request_id'] + ',' + str(output) + '\n')
 
 		# print k
-		return correctCount, incorrectCount, truePositive, trueNegative, falsePositive, falseNegative
+		f.close()
+		return 
 
 	def p_from_list(self, l):
 		p_product         = reduce(lambda x,y: x*y, l)

@@ -10,13 +10,15 @@ from collections import defaultdict
 
 class train:
 
-	def __init__ (self, path):
+	def __init__ (self, path, data = True):
 		self.dataset = parseData.readDataset (path)
-		self.wordCount = defaultdict (int)
-		self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
-		self.wordCountTotal = {'True':0, 'False':0}
-		self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
-		self.featureList = ['upvotes', 'voteRatio', 'unix_timestamp_of_request_utc', 'requester_user_flair']
+		if data == True:
+			self.wordCount = defaultdict (int)
+			self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
+			self.wordCountTotal = {'True':0, 'False':0}
+			self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
+			self.featureList = ['upvotes', '''voteRatio''', 'unix_timestamp_of_request_utc', 'requester_user_flair']
+			# self.featureList = ['unix_timestamp_of_request_utc']
 
 	def addDataSet (self, path):
 		self.dataset = parseData.readDataset (path)
@@ -63,16 +65,16 @@ class train:
 
 	def getFeatureVal (self, post, feature):
 		if feature == 'upvotes':
-			upvotes = int(post['requester_upvotes_minus_downvotes_at_retrieval'])
+			upvotes = int(post['requester_upvotes_minus_downvotes_at_request'])
 			upvotes -= upvotes % 100
 			return upvotes/100
-		if feature == 'voteRatio':
-			if post['number_of_downvotes_of_request_at_retrieval'] != 0:
-				voteRatio = int(post['number_of_upvotes_of_request_at_retrieval'] / post['number_of_downvotes_of_request_at_retrieval'])
-			else:
-				voteRatio = int(post['number_of_upvotes_of_request_at_retrieval'])
+		# if feature == 'voteRatio':
+		# 	if post['number_of_downvotes_of_request_at_request'] != 0:
+		# 		voteRatio = int(post['number_of_upvotes_of_request_at_request'] / post['number_of_downvotes_at_request'])
+		# 	else:
+		# 		voteRatio = int(post['number_of_upvotes_of_request_at_request'])
 
-			return voteRatio
+		# 	return voteRatio
 
 		if feature == 'unix_timestamp_of_request_utc':
 			hour = datetime.datetime.fromtimestamp(int(post['unix_timestamp_of_request_utc'])).strftime('%Y-%m-%d %H:%M:%S')
@@ -81,8 +83,8 @@ class train:
 
 			return hour
 
-		if feature == 'requester_user_flair':
-			return post['requester_user_flair']
+		# if feature == 'requester_user_flair':
+		# 	return post['requester_user_flair']
 
 
 	def mapMetaData (self, post):
@@ -106,6 +108,7 @@ class train:
 			for post in self.dataset:
 				self.mapMetaData (post)
 				classification = post['requester_received_pizza']
+
 				if classification == True:
 					# self.docCount['True'] += 1
 					tWordList += self.words.textToList(post['request_text'])
