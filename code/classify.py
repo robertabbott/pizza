@@ -6,7 +6,7 @@ from collections import defaultdict
 class classify:
 	MIN_WORD_COUNT = 10
 	RARE_WORD_PROB = 0.3
-	EXCLUSIVE_WORD_PROB = 0.99
+	EXCLUSIVE_WORD_PROB = 5
 
 	
 	def __init__ (self, trainingData):
@@ -59,7 +59,7 @@ class classify:
 
 	def getProbability (self, testData):
 		f = open ('data.csv', 'w')
-		f.write ('request_id,requester_received_pizza')
+		f.write ('request_id,requester_received_pizza' + '\n')
 
 		METADATA_WEIGHT = 10
 		THRESHOLD_PROBABILITY = 0.3
@@ -78,6 +78,11 @@ class classify:
 
 			# textProbability
 			for word in post['request_text_edit_aware'].split():
+				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
+					count += 1
+					probability += self.probabilityForWord (word)
+
+			for word in post['request_title'].split():
 				if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.95 - THRESHOLD_PROBABILITY:
 					count += 1
 					probability += self.probabilityForWord (word)

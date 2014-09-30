@@ -17,7 +17,7 @@ class train:
 			self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
 			self.wordCountTotal = {'True':0, 'False':0}
 			self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
-			self.featureList = ['upvotes', '''voteRatio''', 'unix_timestamp_of_request_utc', 'requester_user_flair']
+			self.featureList = ['upvotes', 'downvotes', 'subreddits', 'account_age', 'comment_count', 'unix_timestamp_of_request_utc', 'requester_user_flair']
 			# self.featureList = ['unix_timestamp_of_request_utc']
 
 	def addDataSet (self, path):
@@ -67,7 +67,30 @@ class train:
 		if feature == 'upvotes':
 			upvotes = int(post['requester_upvotes_minus_downvotes_at_request'])
 			upvotes -= upvotes % 100
-			return upvotes/100
+			return upvotes
+
+		if feature == 'downvotes':
+			downvotes = int(post['requester_upvotes_plus_downvotes_at_request'])
+			downvotes -= downvotes % 100
+			return downvotes
+
+		if feature == 'account_age':
+			age = int(post['requester_account_age_in_days_at_request'])
+			age -= age % 10
+			return age
+
+		if feature == 'comment_count':
+			comments = int(post['requester_number_of_comments_at_request'])
+			comments -= comments % 10
+			return comments
+
+		if feature == 'subreddits':
+			sr = int(post['requester_number_of_subreddits_at_request'])
+			sr -= sr % 10
+			return sr
+
+		
+
 		# if feature == 'voteRatio':
 		# 	if post['number_of_downvotes_of_request_at_request'] != 0:
 		# 		voteRatio = int(post['number_of_upvotes_of_request_at_request'] / post['number_of_downvotes_at_request'])
