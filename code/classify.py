@@ -132,19 +132,19 @@ class classify:
 					# True
 					output = 0
 
-				# if output == 1 and post['requester_received_pizza']	== True:
-				# 	print probability
-				# if output == 1 and post['requester_received_pizza']	== False:
-				# 	print probability, '<-- incorrect'
-# 
-				# if post['requester_received_pizza'] == True and output == 1:
-				# 	correct += 1
-				# elif post['requester_received_pizza'] == False and output == 0:
-				# 	correct += 1
-				# else:
-				# 	incorrect += 1
+# 				if output == 1 and post['requester_received_pizza']	== True:
+# 					print probability
+# 				# if output == 1 and post['requester_received_pizza']	== False:
+# 				# 	print probability, '<-- incorrect'
+# # 
+# 				if post['requester_received_pizza'] == True and output == 1:
+# 					correct += 1
+# 				elif post['requester_received_pizza'] == False and output == 0:
+# 					correct += 1
+# 				else:
+# 					incorrect += 1
 
-				f.write (post['request_id'] + ',' + str(output) + '\n')
+				f.write (post['request_id'] + ',' + str(probability) + '\n')
 		print correct, incorrect
 
 		f.close()

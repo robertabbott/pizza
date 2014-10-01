@@ -17,7 +17,7 @@ class train:
 			self.wordOccurrenceCount = {'True':defaultdict (int), 'False':defaultdict (int)}
 			self.wordCountTotal = {'True':0, 'False':0}
 			self.metaDataFeatures = {True:defaultdict(), False:defaultdict()}
-			self.featureList = ['upvotes', 'downvotes', 'subreddits', 'account_age', 'comment_count', 'unix_timestamp_of_request_utc', 'requester_user_flair']
+			self.featureList = ['upvotes', 'downvotes', 'post_length', 'subreddits', 'account_age', 'comment_count', 'unix_timestamp_of_request_utc', 'requester_user_flair']
 			self.docCount = {'True':0, 'False':0}
 			# self.featureList = ['unix_timestamp_of_request_utc']
 
@@ -74,6 +74,10 @@ class train:
 			downvotes = int(post['requester_upvotes_plus_downvotes_at_request'])
 			downvotes -= downvotes % 100
 			return downvotes
+
+		if feature == 'post_length':
+			length = len(post['request_text_edit_aware'])
+			return length - (length % 10)
 
 		if feature == 'account_age':
 			age = int(post['requester_account_age_in_days_at_request'])
