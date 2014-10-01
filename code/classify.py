@@ -34,18 +34,17 @@ class classify:
 			feature_count_True = self.trainingData.metaDataFeatures[True][feature][val]
 			feature_count_False = self.trainingData.metaDataFeatures[False][feature][val]
 
-			if feature_count_False == 0:
-				prob += 1 - self.EXCLUSIVE_WORD_PROB
-			elif feature_count_True == 0:
-				prob += self.EXCLUSIVE_WORD_PROB
+			if feature_count_False == 0 and feature_count_True == 0:
+				return -69
 			else:
 				pT = float(feature_count_True)
 				pF = float(feature_count_False)
 
-				if pT / (pF + pT) > 0.8 or pT / (pF + pT) < 0.2:
-					prob += (pT / (pF + pT))
-				else:
-					count += 1
+				prob = pT / (pF + pT)
+				# if pT / (pF + pT) > 0.8 or pT / (pF + pT) < 0.2:
+				# 	prob += (pT / (pF + pT))
+				# else:
+				# 	count += 1
 
 		if prob == 0:
 			return -69
@@ -67,7 +66,7 @@ class classify:
 		elif word_count_doctype2 == 0:
 			return 1 - self.EXCLUSIVE_WORD_PROB
 		else:
-			# low probability indicates word is likely to occur in true docs
+			# low probability indicates word is likely to occur in false docs
 			p_ws = float(word_count_doctype2) / float(self.trainingData.wordCountTotal['False'])
 			p_wh = float(word_count_doctype1) / float(self.trainingData.wordCountTotal['True'])
 
@@ -98,22 +97,20 @@ class classify:
 				# metaDataProbability
 				metaDataProb = self.probabilityForMetaData(post)
 				# print metaDataProb, post['requester_received_pizza']
-				if metaDataProb != -69 and (metaDataProb < THRESHOLD_PROBABILITY or metaDataProb > 1- THRESHOLD_PROBABILITY):
+				if metaDataProb != -69:
 					count += METADATA_WEIGHT
 					probability += metaDataProb*METADATA_WEIGHT
 
 				# textProbability
 				for word in post['request_text_edit_aware'].split():
 					if self.probabilityForWord (word) != -69:
-						if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
-							count += 1
-							probability += self.probabilityForWord (word)
+						count += 1
+						probability += self.probabilityForWord (word)
 
 				for word in post['request_title'].split():
 					if self.probabilityForWord (word) != -69:
-						if self.probabilityForWord (word) < THRESHOLD_PROBABILITY or self.probabilityForWord (word) > 0.5 - THRESHOLD_PROBABILITY:
-							count += 1
-							probability += self.probabilityForWord (word)
+						count += 1
+						probability += self.probabilityForWord (word)
 
 				probability /= count
 
@@ -132,17 +129,18 @@ class classify:
 					# True
 					output = 0
 
-# 				if output == 1 and post['requester_received_pizza']	== True:
-# 					print probability
-# 				# if output == 1 and post['requester_received_pizza']	== False:
-# 				# 	print probability, '<-- incorrect'
-# # 
-# 				if post['requester_received_pizza'] == True and output == 1:
-# 					correct += 1
-# 				elif post['requester_received_pizza'] == False and output == 0:
-# 					correct += 1
-# 				else:
-# 					incorrect += 1
+				# if output == 1 and post['requester_received_pizza']	== True:
+				# 	print probability
+				# if output == 1 and post['requester_received_pizza']	== False:
+				# 	print probability, '<-- incorrect'
+					# print post['request_text_edit_aware']
+# 
+				# if post['requester_received_pizza'] == True and output == 1:
+				# 	correct += 1
+				# elif post['requester_received_pizza'] == False and output == 0:
+				# 	correct += 1
+				# else:
+				# 	incorrect += 1
 
 				f.write (post['request_id'] + ',' + str(probability) + '\n')
 		print correct, incorrect
